@@ -9,7 +9,7 @@ let posts: Post[] = [
     author: "관리자",
     createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
-    views: 42,
+    views: 7,
   },
   {
     id: "2",
