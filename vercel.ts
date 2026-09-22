@@ -1,11 +1,10 @@
-import { VercelConfig } from '@vercel/config';
+import { type VercelConfig } from '@vercel/config/v1';
 
 export const config: VercelConfig = {
   framework: 'nextjs',
   buildCommand: 'npm run build',
   outputDirectory: '.next',
   installCommand: 'npm install',
-  envPrefix: 'NEXT_PUBLIC_',
 };
 
 export default config;
