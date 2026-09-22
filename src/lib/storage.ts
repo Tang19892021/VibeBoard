@@ -167,6 +167,31 @@ export async function deletePost(id: string): Promise<boolean> {
   return true
 }
 
+export async function searchPosts(query: string): Promise<Post[]> {
+  if (useLocal) {
+    return localPosts.filter((post) =>
+      post.title.toLowerCase().includes(query.toLowerCase()) ||
+      post.content.toLowerCase().includes(query.toLowerCase()) ||
+      post.author.toLowerCase().includes(query.toLowerCase())
+    )
+  }
+
+  const { data, error } = await supabase
+    .from("posts")
+    .select("*")
+    .or(
+      `title.ilike.%${query}%,content.ilike.%${query}%,author.ilike.%${query}%`
+    )
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("Error searching posts:", error)
+    return []
+  }
+
+  return (data || []).map(formatPost)
+}
+
 function formatPost(data: any): Post {
   return {
     id: String(data.id),

@@ -1,4 +1,5 @@
 import { PostList } from "@/components/PostList"
+import { SearchablePostList } from "@/components/SearchablePostList"
 import { getAllPosts } from "@/lib/storage"
 
 export default async function Home() {
@@ -12,7 +13,7 @@ export default async function Home() {
           전체 게시물 {posts.length}개
         </p>
       </div>
-      <PostList posts={posts} />
+      <SearchablePostList initialPosts={posts} />
     </div>
   )
 }
