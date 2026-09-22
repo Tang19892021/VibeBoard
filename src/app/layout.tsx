@@ -5,9 +5,24 @@ import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import "./globals.css"
 
+const siteUrl = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : "http://localhost:3000"
+
 export const metadata: Metadata = {
-  title: "VibeBoard - 게시판",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "VibeBoard - 게시판",
+    template: "%s",
+  },
   description: "Next.js와 shadcn/ui로 만든 게시판 사이트",
+  openGraph: {
+    title: "VibeBoard - 게시판",
+    description: "Next.js와 shadcn/ui로 만든 게시판 사이트",
+    siteName: "VibeBoard",
+    locale: "ko_KR",
+    type: "website",
+  },
 }
 
 export default function RootLayout({
