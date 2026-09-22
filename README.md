@@ -89,12 +89,38 @@ src/
 
 ## 배포
 
-Vercel에 배포하려면:
+### Vercel에 배포하기
 
-1. 이 저장소를 GitHub에 푸시합니다.
-2. [Vercel](https://vercel.com)에서 새 프로젝트를 생성합니다.
-3. 환경 변수를 설정합니다.
-4. 배포합니다.
+1. **GitHub에 푸시** (이미 완료됨)
+   ```bash
+   git push origin master
+   ```
+
+2. **Vercel 접속**
+   - https://vercel.com 방문
+   - GitHub 계정으로 로그인
+
+3. **새 프로젝트 추가**
+   - "Add New..." → "Project" 클릭
+   - GitHub에서 `VibeBoard` 저장소 선택
+   - "Import" 클릭
+
+4. **환경 변수 설정**
+   - Project Settings → Environment Variables
+   - 다음을 추가:
+     ```
+     NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+     NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+     ```
+
+5. **배포**
+   - "Deploy" 클릭
+   - 배포 완료 (약 1-2분)
+
+### 배포 후
+- Vercel에서 제공하는 URL로 접속 가능
+- GitHub에 푸시하면 자동으로 배포됨 (Auto-deployment)
+- 커밋 메시지로 배포 로그 확인 가능
 
 ## 라이선스
 
