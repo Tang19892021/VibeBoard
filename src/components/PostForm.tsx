@@ -11,7 +11,7 @@ interface PostFormProps {
     title: string
     content: string
     author: string
-  }) => void
+  }) => void | Promise<void>
   isLoading?: boolean
   initialData?: {
     title: string
@@ -31,13 +31,13 @@ export function PostForm({
   const [content, setContent] = useState(initialData?.content || "")
   const [author, setAuthor] = useState(initialData?.author || "")
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!title.trim() || !content.trim() || !author.trim()) {
       alert("모든 항목을 입력해주세요.")
       return
     }
-    onSubmit({ title, content, author })
+    await onSubmit({ title, content, author })
   }
 
   return (

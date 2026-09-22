@@ -1,30 +1,11 @@
-"use client"
-
-import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getPostById, deletePost } from "@/lib/storage"
-import { Post } from "@/types/post"
+import { getPostById } from "@/lib/storage"
+import { DeletePostButton } from "@/components/DeletePostButton"
 
-export default function PostDetailPage({ params }: { params: { id: string } }) {
-  const router = useRouter()
-  const [post, setPost] = useState<Post | undefined>(undefined)
-  const [isDeleting, setIsDeleting] = useState(false)
-
-  useEffect(() => {
-    const foundPost = getPostById(params.id)
-    setPost(foundPost)
-  }, [params.id])
-
-  const handleDelete = () => {
-    if (window.confirm("정말 삭제하시겠습니까?")) {
-      setIsDeleting(true)
-      deletePost(params.id)
-      router.push("/")
-    }
-  }
+export default async function PostDetailPage({ params }: { params: { id: string } }) {
+  const post = await getPostById(params.id)
 
   if (!post) {
     return (
@@ -58,13 +39,7 @@ export default function PostDetailPage({ params }: { params: { id: string } }) {
             <Button asChild variant="outline">
               <Link href={`/posts/${post.id}/edit`}>수정</Link>
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? "삭제 중..." : "삭제"}
-            </Button>
+            <DeletePostButton id={post.id} />
           </div>
         </CardContent>
       </Card>

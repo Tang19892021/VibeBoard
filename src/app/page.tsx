@@ -1,8 +1,8 @@
 import { PostList } from "@/components/PostList"
 import { getAllPosts } from "@/lib/storage"
 
-export default function Home() {
-  const posts = getAllPosts()
+export default async function Home() {
+  const posts = await getAllPosts()
 
   return (
     <div>

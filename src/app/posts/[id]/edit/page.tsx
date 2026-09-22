@@ -1,34 +1,9 @@
-"use client"
-
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { PostForm } from "@/components/PostForm"
-import { getPostById, updatePost } from "@/lib/storage"
-import { Post } from "@/types/post"
+import { getPostById } from "@/lib/storage"
 import { Card, CardContent } from "@/components/ui/card"
+import { EditPostForm } from "@/components/EditPostForm"
 
-export default function EditPostPage({ params }: { params: { id: string } }) {
-  const router = useRouter()
-  const [post, setPost] = useState<Post | undefined>(undefined)
-  const [isLoading, setIsLoading] = useState(false)
-
-  useEffect(() => {
-    const foundPost = getPostById(params.id)
-    setPost(foundPost)
-  }, [params.id])
-
-  const handleSubmit = (data: {
-    title: string
-    content: string
-    author: string
-  }) => {
-    setIsLoading(true)
-    updatePost(params.id, {
-      title: data.title,
-      content: data.content,
-    })
-    router.push(`/posts/${params.id}`)
-  }
+export default async function EditPostPage({ params }: { params: { id: string } }) {
+  const post = await getPostById(params.id)
 
   if (!post) {
     return (
@@ -44,15 +19,13 @@ export default function EditPostPage({ params }: { params: { id: string } }) {
 
   return (
     <div>
-      <PostForm
-        onSubmit={handleSubmit}
-        isLoading={isLoading}
+      <EditPostForm
+        id={params.id}
         initialData={{
           title: post.title,
           content: post.content,
           author: post.author,
         }}
-        submitLabel="수정"
       />
     </div>
   )

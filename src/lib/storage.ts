@@ -1,69 +1,104 @@
+import { supabase } from "./supabase"
 import { Post, CreatePostInput, UpdatePostInput } from "@/types/post"
 
-// In-memory storage
-let posts: Post[] = [
-  {
-    id: "1",
-    title: "첫 번째 게시물",
-    content: "환영합니다! 이것은 첫 번째 게시물입니다.",
-    author: "관리자",
-    createdAt: new Date("2024-01-01"),
-    updatedAt: new Date("2024-01-01"),
-    views: 7,
-  },
-  {
-    id: "2",
-    title: "두 번째 게시물",
-    content: "NextJS와 shadcn/ui로 만든 게시판입니다.",
-    author: "사용자",
-    createdAt: new Date("2024-01-02"),
-    updatedAt: new Date("2024-01-02"),
-    views: 28,
-  },
-]
+export async function getAllPosts(): Promise<Post[]> {
+  const { data, error } = await supabase
+    .from("posts")
+    .select("*")
+    .order("created_at", { ascending: false })
 
-export function getAllPosts(): Post[] {
-  return posts.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
-}
-
-export function getPostById(id: string): Post | undefined {
-  const post = posts.find((p) => p.id === id)
-  if (post) {
-    post.views += 1
+  if (error) {
+    console.error("Error fetching posts:", error)
+    return []
   }
-  return post
+
+  return (data || []).map(formatPost)
 }
 
-export function createPost(input: CreatePostInput): Post {
-  const newPost: Post = {
-    id: String(posts.length + 1),
-    ...input,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    views: 0,
+export async function getPostById(id: string): Promise<Post | undefined> {
+  const { data, error } = await supabase
+    .from("posts")
+    .select("*")
+    .eq("id", id)
+    .single()
+
+  if (error) {
+    console.error("Error fetching post:", error)
+    return undefined
   }
-  posts.push(newPost)
-  return newPost
+
+  if (!data) return undefined
+
+  // Increment view count
+  await supabase
+    .from("posts")
+    .update({ views: data.views + 1 })
+    .eq("id", id)
+
+  return formatPost({ ...data, views: data.views + 1 })
 }
 
-export function updatePost(id: string, input: UpdatePostInput): Post | undefined {
-  const index = posts.findIndex((p) => p.id === id)
-  if (index === -1) return undefined
+export async function createPost(input: CreatePostInput): Promise<Post> {
+  const { data, error } = await supabase
+    .from("posts")
+    .insert({
+      title: input.title,
+      content: input.content,
+      author: input.author,
+      views: 0,
+    })
+    .select()
+    .single()
 
-  posts[index] = {
-    ...posts[index],
-    ...input,
-    updatedAt: new Date(),
+  if (error) {
+    throw new Error(`Failed to create post: ${error.message}`)
   }
-  return posts[index]
+
+  return formatPost(data)
 }
 
-export function deletePost(id: string): boolean {
-  const index = posts.findIndex((p) => p.id === id)
-  if (index === -1) return false
+export async function updatePost(
+  id: string,
+  input: UpdatePostInput
+): Promise<Post | undefined> {
+  const { data, error } = await supabase
+    .from("posts")
+    .update({
+      title: input.title,
+      content: input.content,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select()
+    .single()
 
-  posts.splice(index, 1)
+  if (error) {
+    console.error("Error updating post:", error)
+    return undefined
+  }
+
+  return formatPost(data)
+}
+
+export async function deletePost(id: string): Promise<boolean> {
+  const { error } = await supabase.from("posts").delete().eq("id", id)
+
+  if (error) {
+    console.error("Error deleting post:", error)
+    return false
+  }
+
   return true
+}
+
+function formatPost(data: any): Post {
+  return {
+    id: String(data.id),
+    title: data.title,
+    content: data.content,
+    author: data.author,
+    createdAt: new Date(data.created_at),
+    updatedAt: new Date(data.updated_at),
+    views: data.views,
+  }
 }
