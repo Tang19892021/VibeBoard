@@ -1,7 +1,45 @@
-import { supabase } from "./supabase"
 import { Post, CreatePostInput, UpdatePostInput } from "@/types/post"
 
+// In-memory storage for local development
+let localPosts: Post[] = [
+  {
+    id: "1",
+    title: "첫 번째 게시물",
+    content: "환영합니다! 이것은 첫 번째 게시물입니다.",
+    author: "관리자",
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+    views: 7,
+  },
+  {
+    id: "2",
+    title: "두 번째 게시물",
+    content: "NextJS와 shadcn/ui로 만든 게시판입니다.",
+    author: "사용자",
+    createdAt: new Date("2024-01-02"),
+    updatedAt: new Date("2024-01-02"),
+    views: 28,
+  },
+]
+
+let supabase: any = null
+
+try {
+  const { default: sb } = require("./supabase")
+  supabase = sb
+} catch (e) {
+  console.log("Supabase not available, using local storage")
+}
+
+const useLocal = !supabase || !process.env.NEXT_PUBLIC_SUPABASE_URL?.includes("http")
+
 export async function getAllPosts(): Promise<Post[]> {
+  if (useLocal) {
+    return localPosts.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+  }
+
   const { data, error } = await supabase
     .from("posts")
     .select("*")
@@ -16,6 +54,14 @@ export async function getAllPosts(): Promise<Post[]> {
 }
 
 export async function getPostById(id: string): Promise<Post | undefined> {
+  if (useLocal) {
+    const post = localPosts.find((p) => p.id === id)
+    if (post) {
+      post.views += 1
+    }
+    return post
+  }
+
   const { data, error } = await supabase
     .from("posts")
     .select("*")
@@ -29,7 +75,6 @@ export async function getPostById(id: string): Promise<Post | undefined> {
 
   if (!data) return undefined
 
-  // Increment view count
   await supabase
     .from("posts")
     .update({ views: data.views + 1 })
@@ -39,6 +84,18 @@ export async function getPostById(id: string): Promise<Post | undefined> {
 }
 
 export async function createPost(input: CreatePostInput): Promise<Post> {
+  if (useLocal) {
+    const newPost: Post = {
+      id: String(Date.now()),
+      ...input,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      views: 0,
+    }
+    localPosts.push(newPost)
+    return newPost
+  }
+
   const { data, error } = await supabase
     .from("posts")
     .insert({
@@ -61,6 +118,18 @@ export async function updatePost(
   id: string,
   input: UpdatePostInput
 ): Promise<Post | undefined> {
+  if (useLocal) {
+    const index = localPosts.findIndex((p) => p.id === id)
+    if (index === -1) return undefined
+
+    localPosts[index] = {
+      ...localPosts[index],
+      ...input,
+      updatedAt: new Date(),
+    }
+    return localPosts[index]
+  }
+
   const { data, error } = await supabase
     .from("posts")
     .update({
@@ -81,6 +150,13 @@ export async function updatePost(
 }
 
 export async function deletePost(id: string): Promise<boolean> {
+  if (useLocal) {
+    const index = localPosts.findIndex((p) => p.id === id)
+    if (index === -1) return false
+    localPosts.splice(index, 1)
+    return true
+  }
+
   const { error } = await supabase.from("posts").delete().eq("id", id)
 
   if (error) {
